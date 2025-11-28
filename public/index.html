@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IoT Analytics Platform</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <svg class="logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                              d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"/>
+                    </svg>
+                    <h1>IoT Analytics</h1>
+                </div>
+                <button class="theme-toggle" onclick="toggleTheme()">
+                    <svg class="sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <circle cx="12" cy="12" r="5"/>
+                        <line x1="12" y1="1" x2="12" y2="3"/>
+                        <line x1="12" y1="21" x2="12" y2="23"/>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+                        <line x1="1" y1="12" x2="3" y2="12"/>
+                        <line x1="21" y1="12" x2="23" y2="12"/>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+                    </svg>
+                    <svg class="moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            <!-- Channel Selection & Info -->
+            <section class="control-panel">
+                <div class="card">
+                    <div class="card-header">
+                        <h2>📡 Channel Seçimi</h2>
+                        <button class="btn btn-primary" onclick="showCreateChannelModal()">
+                            <span>+</span> Yeni Channel
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div class="channel-selector">
+                            <select id="channelSelect" onchange="loadChannelData()" class="select-input">
+                                <option value="">Channel seçin...</option>
+                            </select>
+                            <button class="btn btn-secondary" onclick="refreshChannels()">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                          d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                                </svg>
+                                Yenile
+                            </button>
+                        </div>
+                        
+                        <div id="channelInfo" class="channel-info hidden">
+                            <div class="info-grid">
+                                <div class="info-item">
+                                    <span class="info-label">Channel Adı:</span>
+                                    <span class="info-value" id="channelName">-</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">API Key:</span>
+                                    <div class="api-key-box">
+                                        <code id="apiKey">-</code>
+                                        <button class="btn-icon" onclick="copyApiKey()" title="Kopyala">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Stats Cards -->
+            <section id="statsSection" class="stats-section hidden">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon temperature">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/>
+                            </svg>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-label">Sıcaklık</div>
+                            <div class="stat-value" id="currentTemp">--°C</div>
+                            <div class="stat-meta" id="tempRange">Min/Max: --</div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon humidity">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/>
+                            </svg>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-label">Nem</div>
+                            <div class="stat-value" id="currentHumidity">--%</div>
+                            <div class="stat-meta" id="humidityRange">Min/Max: --</div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon data">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+                            </svg>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-label">Toplam Veri</div>
+                            <div class="stat-value" id="totalData">--</div>
+                            <div class="stat-meta" id="lastUpdate">Son güncelleme: --</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Charts -->
+            <section id="chartsSection" class="charts-section hidden">
+                <div class="charts-grid">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>🌡️ Sıcaklık Grafiği</h3>
+                            <div class="chart-controls">
+                                <select id="tempTimeRange" onchange="updateCharts()" class="select-small">
+                                    <option value="50">Son 50</option>
+                                    <option value="100" selected>Son 100</option>
+                                    <option value="200">Son 200</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="temperatureChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>💧 Nem Grafiği</h3>
+                            <div class="chart-controls">
+                                <select id="humidityTimeRange" onchange="updateCharts()" class="select-small">
+                                    <option value="50">Son 50</option>
+                                    <option value="100" selected>Son 100</option>
+                                    <option value="200">Son 200</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="humidityChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Create Channel Modal -->
+    <div id="createChannelModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Yeni Channel Oluştur</h3>
+                <button class="modal-close" onclick="closeCreateChannelModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="createChannelForm" onsubmit="createChannel(event)">
+                    <div class="form-group">
+                        <label>Channel Adı</label>
+                        <input type="text" name="name" required placeholder="Örn: Sıcaklık Sensörü" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label>Açıklama</label>
+                        <textarea name="description" placeholder="İsteğe bağlı..." class="form-input" rows="3"></textarea>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Field 1 Adı</label>
+                            <input type="text" name="field1_name" placeholder="Örn: Sıcaklık" class="form-input">
+                        </div>
+                        <div class="form-group">
+                            <label>Field 2 Adı</label>
+                            <input type="text" name="field2_name" placeholder="Örn: Nem" class="form-input">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" onclick="closeCreateChannelModal()">İptal</button>
+                        <button type="submit" class="btn btn-primary">Oluştur</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/app.js"></script>
+    <script src="js/charts.js"></script>
+</body>
+</html>

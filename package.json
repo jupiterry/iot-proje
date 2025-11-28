@@ -1,0 +1,26 @@
+{
+    "name": "iot-analytics-platform",
+    "version": "1.0.0",
+    "description": "ThingSpeak benzeri IoT Analytics Platformu - ESP8266 uyumlu",
+    "main": "server.js",
+    "scripts": {
+        "start": "node server.js",
+        "dev": "node server.js"
+    },
+    "keywords": [
+        "iot",
+        "analytics",
+        "esp8266",
+        "dht11",
+        "thingspeak"
+    ],
+    "author": "",
+    "license": "MIT",
+    "dependencies": {
+        "express": "^4.18.2",
+        "sqlite3": "^5.1.7",
+        "cors": "^2.8.5",
+        "dotenv": "^16.3.1",
+        "body-parser": "^1.20.2"
+    }
+}
