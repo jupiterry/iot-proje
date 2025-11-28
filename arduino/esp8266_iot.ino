@@ -38,7 +38,7 @@ DHT dht(DHTPIN, DHTTYPE);
 WiFiClient client;
 
 unsigned long lastUpdate = 0;
-const unsigned long updateInterval = 15000; // 15 saniye (ThingSpeak minimum)
+const unsigned long updateInterval = 2000; // 2 saniye (gerçek zamanlı veri takibi)
 
 // ============================================
 // SETUP
@@ -104,7 +104,7 @@ void loop() {
         return;
     }
     
-    // 15 saniyede bir veri gönder
+    // 2 saniyede bir veri gönder (gerçek zamanlı veri takibi)
     unsigned long currentMillis = millis();
     if (currentMillis - lastUpdate >= updateInterval) {
         lastUpdate = currentMillis;

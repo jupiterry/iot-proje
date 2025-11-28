@@ -37,7 +37,9 @@ async function fetchChannels() {
 
 async function fetchChannelData(channelId, results = 100) {
     try {
-        const response = await fetch(`/channels/${channelId}/feeds.json?results=${results}`);
+        // Cache bypass için timestamp ekle (her zaman en son veriyi al)
+        const timestamp = new Date().getTime();
+        const response = await fetch(`/channels/${channelId}/feeds.json?results=${results}&_t=${timestamp}`);
         const data = await response.json();
         return data;
     } catch (error) {
@@ -236,7 +238,7 @@ function hideLoadingState() {
 function startAutoRefresh() {
     stopAutoRefresh();
 
-    // 5 saniyede bir güncelle (anlık görünüm için)
+    // 2 saniyede bir güncelle (gerçek zamanlı görünüm)
     refreshInterval = setInterval(async () => {
         const channelId = document.getElementById('channelSelect').value;
         if (channelId) {
@@ -248,7 +250,7 @@ function startAutoRefresh() {
                 updateCharts();
             }
         }
-    }, 5000); // 5 saniye (anlık görünüm için hızlandırıldı)
+    }, 1500); // 1.5 saniye (gerçek zamanlı görünüm - maksimum hız)
 }
 
 function stopAutoRefresh() {
