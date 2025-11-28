@@ -132,8 +132,14 @@ async function loadChannelData() {
 }
 
 function updateChannelInfo(channel) {
-    document.getElementById('channelName').textContent = channel.name;
-    document.getElementById('apiKey').textContent = channel.api_key;
+    document.getElementById('channelName').textContent = channel.name || '-';
+    const apiKeyElement = document.getElementById('apiKey');
+    if (channel.api_key) {
+        apiKeyElement.textContent = channel.api_key;
+    } else {
+        apiKeyElement.textContent = 'API Key yükleniyor...';
+        console.warn('API key bulunamadı, channel objesi:', channel);
+    }
 }
 
 function updateStats(feeds) {

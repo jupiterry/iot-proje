@@ -69,6 +69,7 @@ router.get('/channels/:channelId/feeds.json', async (req, res) => {
                 id: channel.id,
                 name: channel.name,
                 description: channel.description,
+                api_key: channel.api_key,
                 field1: channel.field1_name,
                 field2: channel.field2_name,
                 field3: channel.field3_name,
