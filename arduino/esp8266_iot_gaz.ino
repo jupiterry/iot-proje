@@ -6,11 +6,11 @@
 // ============================================
 
 // WiFi Ayarları
-const char *ssid = "Emirhan2";              // WiFi SSID
-const char *pass = "123456789";          // WiFi Şifre
+const char *ssid = "b";              // WiFi SSID
+const char *pass = "12345678";          // WiFi Şifre
 
 // API Ayarları - Dashboard'dan aldığınız bilgiler
-String apiKey = "YOUR_API_KEY_HERE";    // Dashboard'dan channel oluşturduktan sonra API key'i buraya yapıştırın
+String apiKey = "C575899C0317A2444FE947C8A8452064";    // Dashboard'dan channel oluşturduktan sonra API key'i buraya yapıştırın
 const char* server = "iot.devrekbenimmarketim.com";  // Subdomain
 const int serverPort = 80;              // HTTP için 80
 
@@ -27,11 +27,11 @@ void checkApiKey() {
 #define DHTPIN 5        // DHT sinyal pin (D1 = GPIO 5)
 #define DHTTYPE DHT11   // DHT sensör tipi
 #define GAS_PIN A0      // Gaz sensörü analog pin (A0)
-#define LED_PIN 13      // LED/Buzzer pin (D7 = GPIO 13)
+#define BUZZER_PIN 13   // Buzzer/LED pin (D7 = GPIO 13)
 
 // Eşik Değerleri
 #define TEMP_THRESHOLD 30.0  // Sıcaklık eşik değeri
-#define GAS_THRESHOLD 400    // Gaz eşik değeri (analog okuma)
+#define GAS_THRESHOLD 200    // Gaz eşik değeri (analog okuma)
 
 // ============================================
 // Değişkenler
@@ -46,8 +46,8 @@ const unsigned long updateInterval = 500; // 0.5 saniye (gerçek zamanlı anlık
 // SETUP
 // ============================================
 void setup() {
-    pinMode(LED_PIN, OUTPUT);
-    digitalWrite(LED_PIN, LOW);
+    pinMode(BUZZER_PIN, OUTPUT);
+    digitalWrite(BUZZER_PIN, LOW);  // Başlangıçta buzzer kapalı
     
     Serial.begin(115200);
     delay(100);
@@ -60,7 +60,11 @@ void setup() {
     dht.begin();
     Serial.println("✓ DHT11 sensörü başlatıldı");
     Serial.println("✓ Gaz sensörü hazır (A0)");
-    Serial.println("✓ LED/Buzzer hazır (D7)");
+    Serial.println("✓ Buzzer hazır (D7 = GPIO 13)");
+    Serial.println("\n🔊 Buzzer Bağlantısı:");
+    Serial.println("   (+) Pozitif → D7 (GPIO 13)");
+    Serial.println("   (-) Negatif → GND");
+    Serial.println("");
     
     // API Key kontrolü
     checkApiKey();
@@ -150,11 +154,13 @@ void loop() {
             Serial.println("🔔 UYARI: Sıcaklık eşik değerinin üzerinde!");
         }
         
+        // Buzzer kontrolü - DÜZELTİLDİ: Gaz > 200 ise buzzer AÇIK
         if (gasWarning) {
             Serial.println("🚨 ALARM: Gaz algılandı!!!");
-            digitalWrite(LED_PIN, HIGH);  // LED/Buzzer AÇIK
+            Serial.println("🔊 Buzzer AÇIK");
+            digitalWrite(BUZZER_PIN, HIGH);  // Buzzer AÇIK (HIGH = açık)
         } else {
-            digitalWrite(LED_PIN, LOW);   // LED/Buzzer KAPALI
+            digitalWrite(BUZZER_PIN, LOW);   // Buzzer KAPALI (LOW = kapalı)
         }
         
         // API'ye veri gönder
@@ -292,13 +298,13 @@ void sendDataToAPI(float temperature, float humidity, float gas) {
 // Yardımcı Fonksiyonlar
 // ============================================
 
-// Hata durumunda LED ile uyarı
+// Hata durumunda buzzer ile uyarı (3 kısa bip)
 void errorBlink() {
+    Serial.println("🔊 Hata uyarısı - 3 kısa bip");
     for (int i = 0; i < 3; i++) {
-        digitalWrite(LED_PIN, HIGH);
+        digitalWrite(BUZZER_PIN, HIGH);  // Buzzer açık
         delay(100);
-        digitalWrite(LED_PIN, LOW);
+        digitalWrite(BUZZER_PIN, LOW);   // Buzzer kapalı
         delay(100);
     }
 }
-

@@ -78,6 +78,7 @@ router.get('/channels/:channelId/feeds.json', async (req, res) => {
                 field2: channel.field2_name,
                 field3: channel.field3_name,
                 field4: channel.field4_name,
+                gas_alarm_threshold: channel.gas_alarm_threshold || 200,
                 created_at: channel.created_at,
                 updated_at: channel.updated_at
             },
@@ -148,6 +149,8 @@ router.get('/channels/:id', async (req, res) => {
         if (!channel) {
             return res.status(404).json({ error: 'Channel bulunamadı' });
         }
+        // gas_alarm_threshold varsa ekle, yoksa 200 default
+        channel.gas_alarm_threshold = channel.gas_alarm_threshold || 200;
         res.json(channel);
     } catch (error) {
         console.error('Channel getirme hatası:', error);
@@ -187,6 +190,30 @@ router.get('/channels/:id/stats', async (req, res) => {
         res.json(stats);
     } catch (error) {
         console.error('İstatistik hatası:', error);
+        res.status(500).json({ error: 'Sunucu hatası' });
+    }
+});
+
+// PUT /channels/:id/alarm-threshold - Gaz alarm eşik değerini güncelle
+router.put('/channels/:id/alarm-threshold', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { threshold } = req.body;
+        
+        if (threshold === undefined || threshold === null) {
+            return res.status(400).json({ error: 'Threshold değeri gerekli' });
+        }
+        
+        const thresholdValue = parseFloat(threshold);
+        if (isNaN(thresholdValue) || thresholdValue < 0) {
+            return res.status(400).json({ error: 'Geçerli bir sayı girin (0 veya daha büyük)' });
+        }
+        
+        const channel = await Channel.updateAlarmThreshold(id, thresholdValue);
+        res.json(channel);
+        console.log(`✓ Alarm threshold güncellendi - Channel: ${channel.name}, Threshold: ${thresholdValue}`);
+    } catch (error) {
+        console.error('Alarm threshold güncelleme hatası:', error);
         res.status(500).json({ error: 'Sunucu hatası' });
     }
 });

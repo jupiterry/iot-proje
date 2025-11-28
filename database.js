@@ -28,6 +28,7 @@ class Database {
                 field2_name VARCHAR(50) DEFAULT 'Field 2',
                 field3_name VARCHAR(50) DEFAULT 'Field 3',
                 field4_name VARCHAR(50) DEFAULT 'Field 4',
+                gas_alarm_threshold FLOAT DEFAULT 200,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
@@ -36,6 +37,16 @@ class Database {
                 console.error('Channels tablosu oluşturma hatası:', err.message);
             } else {
                 console.log('✓ Channels tablosu hazır');
+                
+                // Alarm threshold kolonu yoksa ekle (migration)
+                this.db.run(`
+                    ALTER TABLE channels ADD COLUMN gas_alarm_threshold FLOAT DEFAULT 200
+                `, (err) => {
+                    // Hata vermesi normal (kolon zaten varsa)
+                    if (!err) {
+                        console.log('✓ Alarm threshold kolonu eklendi');
+                    }
+                });
             }
         });
 

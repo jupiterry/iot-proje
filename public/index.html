@@ -83,6 +83,20 @@
                                         </button>
                                     </div>
                                 </div>
+                                <div class="info-item full-width" id="alarmThresholdItem" style="display: none;">
+                                    <span class="info-label">🚨 Gaz Alarm Eşik Değeri:</span>
+                                    <div class="alarm-threshold-box">
+                                        <input type="number" id="alarmThresholdInput" class="threshold-input" 
+                                               min="0" step="1" placeholder="200" 
+                                               onkeypress="if(event.key==='Enter') updateAlarmThreshold()">
+                                        <button class="btn btn-small btn-primary" onclick="updateAlarmThreshold()">
+                                            <span>Kaydet</span>
+                                        </button>
+                                    </div>
+                                    <div class="info-meta" id="currentThresholdInfo">
+                                        <span>Mevcut eşik: </span><span id="currentThreshold">200</span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>

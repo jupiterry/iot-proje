@@ -163,6 +163,23 @@ function updateChannelInfo(channel) {
         apiKeyElement.textContent = 'API Key yükleniyor...';
         console.warn('API key bulunamadı, channel objesi:', channel);
     }
+    
+    // Alarm threshold bilgisini göster (field3 varsa veya field3_name'de "gaz" geçiyorsa)
+    const alarmThresholdItem = document.getElementById('alarmThresholdItem');
+    const hasGasField = channel.field3 || 
+                       (channel.field3_name && (channel.field3_name.toLowerCase().includes('gaz') || channel.field3_name.toLowerCase().includes('gas')));
+    
+    if (hasGasField) {
+        alarmThresholdItem.style.display = 'block';
+        const threshold = channel.gas_alarm_threshold || 200;
+        document.getElementById('alarmThresholdInput').value = threshold;
+        document.getElementById('currentThreshold').textContent = threshold;
+        // Global değişken olarak sakla (alarm kontrolü için)
+        window.currentAlarmThreshold = threshold;
+    } else {
+        alarmThresholdItem.style.display = 'none';
+        window.currentAlarmThreshold = 200; // Varsayılan
+    }
 }
 
 function updateStats(feeds) {
@@ -202,15 +219,15 @@ function updateStats(feeds) {
         if (!isNaN(gas)) {
             document.getElementById('currentGas').textContent = gas.toFixed(0);
             
-            // Gaz uyarısı kontrolü (400'den büyükse uyarı)
-            const GAS_THRESHOLD = 400;
+            // Gaz uyarısı kontrolü (kullanıcının ayarladığı threshold'a göre)
+            const GAS_THRESHOLD = window.currentAlarmThreshold || 200;
             if (gas > GAS_THRESHOLD) {
-                document.getElementById('gasStatus').textContent = '🚨 ALARM: Gaz Algılandı!';
+                document.getElementById('gasStatus').textContent = `🚨 ALARM: Gaz Algılandı! (Eşik: ${GAS_THRESHOLD})`;
                 document.getElementById('gasStatus').style.color = '#ef4444';
                 document.getElementById('gasStatus').style.fontWeight = 'bold';
                 gasCard.classList.add('gas-warning');
             } else {
-                document.getElementById('gasStatus').textContent = 'Durum: Normal';
+                document.getElementById('gasStatus').textContent = `Durum: Normal (Eşik: ${GAS_THRESHOLD})`;
                 document.getElementById('gasStatus').style.color = '';
                 document.getElementById('gasStatus').style.fontWeight = '';
                 gasCard.classList.remove('gas-warning');
@@ -358,6 +375,65 @@ async function createChannel(event) {
 
     } catch (error) {
         alert('❌ Channel oluşturulamadı. Lütfen tekrar deneyin.');
+    }
+}
+
+// ============================================
+// Alarm Threshold Functions
+// ============================================
+async function updateAlarmThreshold() {
+    const channelId = document.getElementById('channelSelect').value;
+    if (!channelId) {
+        alert('Lütfen önce bir channel seçin');
+        return;
+    }
+    
+    const thresholdInput = document.getElementById('alarmThresholdInput');
+    const threshold = parseFloat(thresholdInput.value);
+    
+    if (isNaN(threshold) || threshold < 0) {
+        alert('Lütfen geçerli bir sayı girin (0 veya daha büyük)');
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/channels/${channelId}/alarm-threshold`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ threshold })
+        });
+        
+        if (!response.ok) throw new Error('Güncelleme başarısız');
+        
+        const channel = await response.json();
+        
+        // UI'ı güncelle
+        document.getElementById('currentThreshold').textContent = threshold;
+        window.currentAlarmThreshold = threshold;
+        thresholdInput.value = threshold;
+        
+        // Başarı mesajı
+        const btn = event.target.closest('button');
+        if (btn) {
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '✓ Kaydedildi!';
+            btn.style.background = 'var(--accent-success)';
+            
+            setTimeout(() => {
+                btn.innerHTML = originalText;
+                btn.style.background = '';
+            }, 2000);
+        }
+        
+        // Channel verilerini yeniden yükle (threshold'u güncellemek için)
+        await loadChannelData();
+        
+        console.log(`✓ Alarm threshold güncellendi: ${threshold}`);
+    } catch (error) {
+        console.error('Alarm threshold güncelleme hatası:', error);
+        alert('❌ Alarm eşik değeri güncellenemedi. Lütfen tekrar deneyin.');
     }
 }
 

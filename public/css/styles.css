@@ -358,6 +358,54 @@ section {
     color: var(--accent-primary);
 }
 
+.info-item.full-width {
+    grid-column: 1 / -1;
+    margin-top: var(--spacing-md);
+    padding-top: var(--spacing-md);
+    border-top: 1px solid var(--bg-tertiary);
+}
+
+.alarm-threshold-box {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    margin-top: var(--spacing-xs);
+}
+
+.threshold-input {
+    flex: 1;
+    max-width: 150px;
+    padding: var(--spacing-sm) var(--spacing-md);
+    border: 2px solid var(--bg-tertiary);
+    border-radius: var(--radius-md);
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    font-size: 1rem;
+    font-weight: 600;
+    transition: border-color 0.3s ease;
+}
+
+.threshold-input:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+}
+
+.info-meta {
+    margin-top: var(--spacing-xs);
+    font-size: 0.875rem;
+    color: var(--text-muted);
+}
+
+.info-meta span:last-child {
+    font-weight: 600;
+    color: var(--accent-primary);
+}
+
+.btn-small {
+    padding: var(--spacing-xs) var(--spacing-md);
+    font-size: 0.875rem;
+}
+
 /* ============================================
    Stats Cards
    ============================================ */

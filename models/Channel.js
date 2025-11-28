@@ -59,16 +59,30 @@ class Channel {
 
     // Channel güncelle
     static async update(id, data) {
-        const { name, description, field1_name, field2_name, field3_name, field4_name } = data;
+        const { name, description, field1_name, field2_name, field3_name, field4_name, gas_alarm_threshold } = data;
 
         const sql = `
             UPDATE channels 
             SET name = ?, description = ?, field1_name = ?, field2_name = ?, 
-                field3_name = ?, field4_name = ?, updated_at = CURRENT_TIMESTAMP
+                field3_name = ?, field4_name = ?, 
+                gas_alarm_threshold = COALESCE(?, gas_alarm_threshold),
+                updated_at = CURRENT_TIMESTAMP
             WHERE id = ?
         `;
 
-        await db.run(sql, [name, description, field1_name, field2_name, field3_name, field4_name, id]);
+        await db.run(sql, [name, description, field1_name, field2_name, field3_name, field4_name, gas_alarm_threshold, id]);
+        return await this.findById(id);
+    }
+    
+    // Alarm threshold güncelle
+    static async updateAlarmThreshold(id, threshold) {
+        const sql = `
+            UPDATE channels 
+            SET gas_alarm_threshold = ?, updated_at = CURRENT_TIMESTAMP
+            WHERE id = ?
+        `;
+        
+        await db.run(sql, [threshold, id]);
         return await this.findById(id);
     }
 
