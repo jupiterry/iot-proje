@@ -11,8 +11,8 @@ const char *pass = "Emre1234";          // WiFi Şifre
 
 // API Ayarları - Dashboard'dan aldığınız bilgiler
 String apiKey = "YOUR_API_KEY_HERE";    // Dashboard'dan channel oluşturduktan sonra API key'i buraya yapıştırın
-const char* server = "YOUR_VPS_IP";     // VPS IP adresi veya domain (örn: "192.168.1.100" veya "iot.example.com")
-const int serverPort = 3000;            // API port (varsayılan: 3000)
+const char* server = "iot.devrekbenimmarketim.com";  // Subdomain (HTTP için 80, HTTPS için 443)
+const int serverPort = 80;              // HTTP için 80, HTTPS için 443
 
 // DHT Sensör Ayarları
 #define DHTPIN 5        // DHT sinyal pin (D1 = GPIO 5)

@@ -1,6 +1,6 @@
-# 🚀 VPS Deployment Rehberi
+# 🚀 VPS Deployment Rehberi - devrekbenimmarketim.com
 
-Bu rehber, VPS'inizde çalışan MERN projenizi bozmadan IoT Analytics Platform'unu farklı bir domainde çalıştırmanızı sağlar.
+Bu rehber, `devrekbenimmarketim.com` domain'inizde çalışan MERN projenizi bozmadan IoT Analytics Platform'unu subdomain olarak (`iot.devrekbenimmarketim.com`) çalıştırmanızı sağlar.
 
 ## 📋 Ön Gereksinimler
 
@@ -14,7 +14,7 @@ Bu rehber, VPS'inizde çalışan MERN projenizi bozmadan IoT Analytics Platform'
 ### Seçenek A: Git ile (Önerilen)
 ```bash
 cd /home/your-username
-git clone your-repo-url iot-analytics
+git clone https://github.com/jupiterry/iot-proje.git iot-analytics
 cd iot-analytics
 ```
 
@@ -54,7 +54,7 @@ npm install -g pm2
 
 # IoT projesini PM2 ile başlat
 cd /home/your-username/iot-analytics
-pm2 start server.js --name iot-analytics --env production
+pm2 start server.js --name iot-proje --env production
 
 # PM2'yi sistem başlangıcında otomatik başlat
 pm2 save
@@ -79,12 +79,12 @@ sudo nano /etc/nginx/sites-available/iot-analytics
 
 ### 4.2 Nginx Yapılandırması
 
-IoT projesi için yeni bir domain/subdomain kullanın (örn: `iot.yourdomain.com`):
+IoT projesi için subdomain kullanın: `iot.devrekbenimmarketim.com`
 
 ```nginx
 server {
     listen 80;
-    server_name iot.yourdomain.com;  # IoT için domain/subdomain
+    server_name iot.devrekbenimmarketim.com;  # IoT subdomain
 
     # Log dosyaları
     access_log /var/log/nginx/iot-analytics-access.log;
@@ -139,7 +139,7 @@ sudo apt-get update
 sudo apt-get install certbot python3-certbot-nginx
 
 # SSL sertifikası al
-sudo certbot --nginx -d iot.yourdomain.com
+sudo certbot --nginx -d iot.devrekbenimmarketim.com
 
 # Otomatik yenileme test et
 sudo certbot renew --dry-run
@@ -157,17 +157,23 @@ sudo ufw allow 3001/tcp
 
 ## 🔧 Adım 7: Domain DNS Ayarları
 
-DNS panelinizde (domain sağlayıcınızın panelinde):
+DNS panelinizde (domain sağlayıcınızın panelinde - Namecheap, GoDaddy, vb.):
 
+**Subdomain A Record ekleyin:**
 ```
-A Record:
-iot.yourdomain.com -> VPS_IP_ADRESI
+Type: A Record
+Host: iot
+Value: VPS_IP_ADRESI (devrekbenimmarketim.com'un işaret ettiği aynı IP)
+TTL: 3600 (veya Auto)
 ```
 
-Veya subdomain:
-```
-A Record:
-iot -> VPS_IP_ADRESI
+**Örnek:**
+- Ana domain: `devrekbenimmarketim.com` → `123.45.67.89`
+- Subdomain: `iot.devrekbenimmarketim.com` → `123.45.67.89` (aynı IP)
+
+**Not:** DNS değişiklikleri 5 dakika ile 24 saat arasında yayılabilir. Kontrol için:
+```bash
+nslookup iot.devrekbenimmarketim.com
 ```
 
 ## ✅ Kontrol Listesi
@@ -180,7 +186,7 @@ iot -> VPS_IP_ADRESI
 - [ ] Nginx yeniden yüklendi
 - [ ] DNS kayıtları yapıldı
 - [ ] SSL sertifikası alındı (opsiyonel ama önerilir)
-- [ ] `http://iot.yourdomain.com` veya `https://iot.yourdomain.com` çalışıyor
+- [ ] `http://iot.devrekbenimmarketim.com` veya `https://iot.devrekbenimmarketim.com` çalışıyor
 
 ## 🧪 Test
 
@@ -198,14 +204,14 @@ curl http://localhost:3001
 
 ### 3. Nginx Kontrolü
 ```bash
-curl http://iot.yourdomain.com
+curl http://iot.devrekbenimmarketim.com
 # HTML sayfası dönmeli
 ```
 
 ### 4. API Testi
 ```bash
 # Channel oluştur
-curl -X POST http://iot.yourdomain.com/channels \
+curl -X POST http://iot.devrekbenimmarketim.com/channels \
   -H "Content-Type: application/json" \
   -d '{"name":"Test Channel","field1_name":"Sıcaklık","field2_name":"Nem"}'
 ```
@@ -216,14 +222,14 @@ Her iki proje de aynı VPS'te çalışacak:
 
 ```
 MERN Projesi:
-- Port: 3000
-- Domain: yourdomain.com veya api.yourdomain.com
+- Port: 3000 (veya mevcut portunuz)
+- Domain: devrekbenimmarketim.com
 - PM2 Name: mern-app (veya mevcut adı)
 
 IoT Projesi:
 - Port: 3001
-- Domain: iot.yourdomain.com
-- PM2 Name: iot-analytics
+- Domain: iot.devrekbenimmarketim.com
+- PM2 Name: iot-proje
 ```
 
 PM2 ile her ikisini de yönetebilirsiniz:
@@ -255,8 +261,9 @@ pm2 restart iot-analytics
 - Nginx error log: `sudo tail -f /var/log/nginx/iot-analytics-error.log`
 
 ### Domain Erişilemiyor
-- DNS kayıtlarının yayıldığını kontrol edin: `nslookup iot.yourdomain.com`
+- DNS kayıtlarının yayıldığını kontrol edin: `nslookup iot.devrekbenimmarketim.com`
 - Firewall'da 80/443 portlarının açık olduğunu kontrol edin
+- DNS yayılması 5-24 saat sürebilir, sabırlı olun
 
 ## 📝 Notlar
 
@@ -267,5 +274,23 @@ pm2 restart iot-analytics
 
 ## 🎉 Başarılı!
 
-Artık IoT projeniz `iot.yourdomain.com` adresinde, MERN projeniz ise kendi domain'inde çalışıyor!
+Artık IoT projeniz `iot.devrekbenimmarketim.com` adresinde, MERN projeniz ise `devrekbenimmarketim.com` adresinde çalışıyor!
+
+## 📱 ESP8266 Ayarları
+
+Arduino kodunuzda server adresini güncelleyin:
+
+```cpp
+// API Ayarları
+String apiKey = "DASHBOARD_DAN_ALDIGINIZ_API_KEY";
+const char* server = "iot.devrekbenimmarketim.com";  // Subdomain
+const int serverPort = 80;  // HTTP için 80, HTTPS için 443
+```
+
+**HTTPS kullanıyorsanız:**
+```cpp
+const char* server = "iot.devrekbenimmarketim.com";
+const int serverPort = 443;
+// WiFiClientSecure client; kullanın
+```
 
