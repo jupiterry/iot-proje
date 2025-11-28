@@ -216,6 +216,7 @@ void sendDataToAPI(float temperature, float humidity) {
     String response = "";
     bool headersEnded = false;
     int statusCode = 0;
+    String locationHeader = "";
     
     while (client.available() || client.connected()) {
         if (client.available()) {
@@ -233,6 +234,14 @@ void sendDataToAPI(float temperature, float humidity) {
                 }
             }
             
+            // Location header'ını oku (301/302 redirect için)
+            if (line.startsWith("Location:") || line.startsWith("location:")) {
+                locationHeader = line.substring(line.indexOf(':') + 1);
+                locationHeader.trim();
+                Serial.print("🔄 Redirect Location: ");
+                Serial.println(locationHeader);
+            }
+            
             // Header'ların sonu (boş satır)
             if (line.length() == 0) {
                 headersEnded = true;
@@ -246,6 +255,19 @@ void sendDataToAPI(float temperature, float humidity) {
         } else {
             delay(10);
         }
+    }
+    
+    // 301/302 Redirect kontrolü
+    if (statusCode == 301 || statusCode == 302) {
+        Serial.println("❌ HATA: HTTP 301/302 Redirect alındı!");
+        Serial.println("ESP8266 HTTPS desteklemiyor.");
+        Serial.println("ÇÖZÜM: VPS'te Nginx yapılandırmasını düzeltin:");
+        Serial.println("  - /etc/nginx/sites-available/iot-analytics dosyasını açın");
+        Serial.println("  - 'return 301 https://...' satırını silin");
+        Serial.println("  - 'sudo nginx -t' ve 'sudo systemctl reload nginx' çalıştırın");
+        Serial.println("Detaylı bilgi: NGINX_HTTP_FIX.md dosyasına bakın\n");
+        client.stop();
+        return;
     }
     
     // Yanıtı göster

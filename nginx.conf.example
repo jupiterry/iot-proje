@@ -2,6 +2,7 @@
 # Bu dosyayı /etc/nginx/sites-available/iot-analytics olarak kaydedin
 # Domain: devrekbenimmarketim.com için hazırlanmıştır
 
+# HTTP Server - ESP8266 için HTTP desteği (301 redirect yok)
 server {
     listen 80;
     server_name iot.devrekbenimmarketim.com;  # IoT subdomain
@@ -12,6 +13,9 @@ server {
 
     # Maksimum upload boyutu
     client_max_body_size 1M;
+
+    # HTTP'den HTTPS'e yönlendirme YOK (ESP8266 için gerekli)
+    # return 301 https://$server_name$request_uri;  # Bu satırı SİLİN veya yorum satırı yapın
 
     location / {
         proxy_pass http://localhost:3001;  # IoT projesinin portu
@@ -45,7 +49,8 @@ server {
     }
 }
 
-# SSL yapılandırması (Let's Encrypt sonrası otomatik eklenir)
+# HTTPS Server - Tarayıcılar için (opsiyonel)
+# ESP8266 HTTP kullanıyorsa bu blok gerekli değil
 # server {
 #     listen 443 ssl http2;
 #     server_name iot.devrekbenimmarketim.com;
