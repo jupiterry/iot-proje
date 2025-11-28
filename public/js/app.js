@@ -127,7 +127,7 @@ async function loadChannelData() {
 
     hideLoadingState();
 
-    // Auto-refresh başlat (15 saniyede bir)
+    // Auto-refresh başlat (5 saniyede bir - anlık görünüm)
     startAutoRefresh();
 }
 
@@ -213,11 +213,21 @@ function hideChannelData() {
 }
 
 function showLoadingState() {
-    // Loading state eklenebilir
+    // Loading state - istatistiklerde güncelleme göstergesi
+    const statsCards = document.querySelectorAll('.stat-value');
+    statsCards.forEach(card => {
+        if (card.textContent !== '--' && card.textContent !== '--°C' && card.textContent !== '--%') {
+            card.style.opacity = '0.6';
+        }
+    });
 }
 
 function hideLoadingState() {
-    // Loading state kaldırılabilir
+    // Loading state kaldır
+    const statsCards = document.querySelectorAll('.stat-value');
+    statsCards.forEach(card => {
+        card.style.opacity = '1';
+    });
 }
 
 // ============================================
@@ -226,7 +236,7 @@ function hideLoadingState() {
 function startAutoRefresh() {
     stopAutoRefresh();
 
-    // 15 saniyede bir güncelle
+    // 5 saniyede bir güncelle (anlık görünüm için)
     refreshInterval = setInterval(async () => {
         const channelId = document.getElementById('channelSelect').value;
         if (channelId) {
@@ -238,7 +248,7 @@ function startAutoRefresh() {
                 updateCharts();
             }
         }
-    }, 15000); // 15 saniye
+    }, 5000); // 5 saniye (anlık görünüm için hızlandırıldı)
 }
 
 function stopAutoRefresh() {

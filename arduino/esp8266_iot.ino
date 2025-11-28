@@ -6,13 +6,22 @@
 // ============================================
 
 // WiFi Ayarları
-const char *ssid = "Emre";              // WiFi SSID
-const char *pass = "Emre1234";          // WiFi Şifre
+const char *ssid = "Emirhan2";              // WiFi SSID
+const char *pass = "123456789";          // WiFi Şifre
 
 // API Ayarları - Dashboard'dan aldığınız bilgiler
-String apiKey = "YOUR_API_KEY_HERE";    // Dashboard'dan channel oluşturduktan sonra API key'i buraya yapıştırın
+String apiKey = "C2B48A621DA7D9F7EBA4BFA4A8CAAE7F";    // Dashboard'dan channel oluşturduktan sonra API key'i buraya yapıştırın
 const char* server = "iot.devrekbenimmarketim.com";  // Subdomain (HTTP için 80, HTTPS için 443)
 const int serverPort = 80;              // HTTP için 80, HTTPS için 443
+
+// API Key kontrolü
+void checkApiKey() {
+    if (apiKey == "YOUR_API_KEY_HERE" || apiKey.length() < 10) {
+        Serial.println("⚠⚠⚠ UYARI: API Key ayarlanmamış! ⚠⚠⚠");
+        Serial.println("Lütfen dashboard'dan API key'i alıp kodda güncelleyin.");
+        Serial.println("API Key olmadan veri gönderilemez!\n");
+    }
+}
 
 // DHT Sensör Ayarları
 #define DHTPIN 5        // DHT sinyal pin (D1 = GPIO 5)
@@ -47,6 +56,9 @@ void setup() {
     // DHT sensörü başlat
     dht.begin();
     Serial.println("✓ DHT11 sensörü başlatıldı");
+    
+    // API Key kontrolü
+    checkApiKey();
     
     // WiFi'ye bağlan
     connectWiFi();
@@ -110,10 +122,10 @@ void loop() {
         // Verileri ekrana yazdır
         Serial.println("─────────────────────────────────");
         Serial.print("🌡️  Sıcaklık: ");
-        Serial.print(t);
+        Serial.print(t, 2);
         Serial.println(" °C");
         Serial.print("💧 Nem: ");
-        Serial.print(h);
+        Serial.print(h, 2);
         Serial.println(" %");
         
         // Buzzer kontrolü
@@ -136,63 +148,122 @@ void loop() {
 // API'ye Veri Gönderimi
 // ============================================
 void sendDataToAPI(float temperature, float humidity) {
+    // API Key kontrolü
+    if (apiKey == "YOUR_API_KEY_HERE" || apiKey.length() < 10) {
+        Serial.println("✗ HATA: API Key ayarlanmamış!");
+        Serial.println("Lütfen dashboard'dan API key'i alıp kodda güncelleyin.\n");
+        return;
+    }
+    
     Serial.print("📡 API'ye bağlanılıyor: ");
     Serial.print(server);
     Serial.print(":");
     Serial.println(serverPort);
     
-    if (!client.connect(server, serverPort)) {
-        Serial.println("✗ Sunucuya bağlanılamadı!");
-        return;
+    // Bağlantı timeout'u
+    unsigned long connectTimeout = millis();
+    while (!client.connect(server, serverPort)) {
+        if (millis() - connectTimeout > 10000) {
+            Serial.println("✗ Sunucuya bağlanılamadı! (10 saniye timeout)");
+            Serial.println("Kontrol edin:");
+            Serial.println("  - WiFi bağlantısı aktif mi?");
+            Serial.println("  - Domain adresi doğru mu?");
+            Serial.println("  - Sunucu çalışıyor mu?\n");
+            return;
+        }
+        delay(100);
     }
     
     Serial.println("✓ Sunucuya bağlandı");
     
-    // POST body oluştur
-    String postData = "field1=" + String(temperature) + "&field2=" + String(humidity);
+    // POST body oluştur (2 ondalık basamak)
+    String postData = "field1=" + String(temperature, 2) + "&field2=" + String(humidity, 2);
+    
+    Serial.print("📤 Gönderilen veri: ");
+    Serial.println(postData);
+    Serial.print("🔑 API Key: ");
+    Serial.println(apiKey);
     
     // HTTP POST request
-    client.print("POST /update HTTP/1.1\r\n");
+    client.println("POST /update HTTP/1.1");
     client.print("Host: ");
-    client.print(server);
-    client.print("\r\n");
-    client.print("Connection: close\r\n");
+    client.println(server);
+    client.println("Connection: close");
     client.print("X-THINGSPEAKAPIKEY: ");
-    client.print(apiKey);
-    client.print("\r\n");
-    client.print("Content-Type: application/x-www-form-urlencoded\r\n");
+    client.println(apiKey);
+    client.println("Content-Type: application/x-www-form-urlencoded");
     client.print("Content-Length: ");
-    client.print(postData.length());
-    client.print("\r\n\r\n");
-    client.print(postData);
+    client.println(postData.length());
+    client.println(); // Boş satır (header'ların sonu)
+    client.println(postData);
     
-    Serial.println("✓ Veri gönderildi");
+    Serial.println("✓ HTTP request gönderildi");
     
-    // Sunucu yanıtını oku
+    // Sunucu yanıtını bekle ve oku
     unsigned long timeout = millis();
     while (client.available() == 0) {
-        if (millis() - timeout > 5000) {
-            Serial.println("⚠ Sunucu yanıt vermedi (timeout)");
+        if (millis() - timeout > 10000) {
+            Serial.println("⚠ Sunucu yanıt vermedi (10 saniye timeout)");
             client.stop();
             return;
         }
+        delay(10);
     }
     
+    Serial.println("📥 Sunucu yanıtı alınıyor...");
+    
     // Response'u oku
+    String response = "";
     bool headersEnded = false;
-    while (client.available()) {
-        String line = client.readStringUntil('\n');
-        
-        if (line == "\r") {
-            headersEnded = true;
-        } else if (headersEnded && line.length() > 0) {
-            Serial.print("📥 Sunucu yanıtı: Entry ID = ");
-            Serial.println(line);
+    int statusCode = 0;
+    
+    while (client.available() || client.connected()) {
+        if (client.available()) {
+            String line = client.readStringUntil('\n');
+            line.trim();
+            
+            // HTTP status line'ı oku
+            if (line.startsWith("HTTP/")) {
+                int firstSpace = line.indexOf(' ');
+                int secondSpace = line.indexOf(' ', firstSpace + 1);
+                if (firstSpace > 0 && secondSpace > 0) {
+                    statusCode = line.substring(firstSpace + 1, secondSpace).toInt();
+                    Serial.print("📊 HTTP Status: ");
+                    Serial.println(statusCode);
+                }
+            }
+            
+            // Header'ların sonu (boş satır)
+            if (line.length() == 0) {
+                headersEnded = true;
+                continue;
+            }
+            
+            // Body'yi oku
+            if (headersEnded && line.length() > 0) {
+                response += line;
+            }
+        } else {
+            delay(10);
         }
     }
     
+    // Yanıtı göster
+    if (response.length() > 0) {
+        Serial.print("✅ Başarılı! Entry ID: ");
+        Serial.println(response);
+    } else if (statusCode == 200) {
+        Serial.println("✅ Veri başarıyla gönderildi!");
+    } else if (statusCode == 401 || statusCode == 403) {
+        Serial.println("❌ HATA: Geçersiz API Key!");
+        Serial.println("Lütfen dashboard'dan doğru API key'i alıp güncelleyin.");
+    } else if (statusCode > 0) {
+        Serial.print("⚠ UYARI: HTTP Status ");
+        Serial.println(statusCode);
+    }
+    
     client.stop();
-    Serial.println("✓ Bağlantı kapatıldı");
+    Serial.println("✓ Bağlantı kapatıldı\n");
 }
 
 // ============================================
