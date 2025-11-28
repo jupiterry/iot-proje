@@ -118,6 +118,19 @@
                         </div>
                     </div>
 
+                    <div class="stat-card" id="gasCard">
+                        <div class="stat-icon gas">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                            </svg>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-label">Gaz Seviyesi</div>
+                            <div class="stat-value" id="currentGas">--</div>
+                            <div class="stat-meta" id="gasStatus">Durum: Normal</div>
+                        </div>
+                    </div>
+
                     <div class="stat-card">
                         <div class="stat-icon data">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
@@ -167,6 +180,22 @@
                             <canvas id="humidityChart"></canvas>
                         </div>
                     </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>💨 Gaz Seviyesi Grafiği</h3>
+                            <div class="chart-controls">
+                                <select id="gasTimeRange" onchange="updateCharts()" class="select-small">
+                                    <option value="50">Son 50</option>
+                                    <option value="100" selected>Son 100</option>
+                                    <option value="200">Son 200</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="gasChart"></canvas>
+                        </div>
+                    </div>
                 </div>
             </section>
         </div>
@@ -197,6 +226,16 @@
                         <div class="form-group">
                             <label>Field 2 Adı</label>
                             <input type="text" name="field2_name" placeholder="Örn: Nem" class="form-input">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Field 3 Adı</label>
+                            <input type="text" name="field3_name" placeholder="Örn: Gaz Seviyesi" class="form-input">
+                        </div>
+                        <div class="form-group">
+                            <label>Field 4 Adı</label>
+                            <input type="text" name="field4_name" placeholder="İsteğe bağlı..." class="form-input">
                         </div>
                     </div>
                     <div class="modal-footer">

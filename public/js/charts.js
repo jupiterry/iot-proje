@@ -4,6 +4,7 @@
 
 let temperatureChart = null;
 let humidityChart = null;
+let gasChart = null;
 
 // Chart.js default ayarları
 Chart.defaults.font.family = "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
@@ -229,6 +230,117 @@ function createHumidityChart(labels, data) {
     });
 }
 
+function createGasChart(labels, data) {
+    const ctx = document.getElementById('gasChart');
+    if (!ctx) return; // Gaz chart elementi yoksa çık
+    
+    const chartCtx = ctx.getContext('2d');
+
+    // Eski chart'ı yok et
+    if (gasChart) {
+        gasChart.destroy();
+    }
+
+    // Gradient oluştur
+    const gradient = chartCtx.createLinearGradient(0, 0, 0, 400);
+    gradient.addColorStop(0, 'rgba(250, 112, 154, 0.5)');
+    gradient.addColorStop(1, 'rgba(254, 225, 64, 0.0)');
+
+    gasChart = new Chart(chartCtx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Gaz Seviyesi',
+                data: data,
+                borderColor: '#fa709a',
+                backgroundColor: gradient,
+                borderWidth: 3,
+                fill: true,
+                tension: 0.4,
+                pointRadius: 0,
+                pointHoverRadius: 6,
+                pointHoverBackgroundColor: '#fa709a',
+                pointHoverBorderColor: '#fff',
+                pointHoverBorderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: {
+                duration: 0 // Animasyon yok (hızlı güncelleme için)
+            },
+            interaction: {
+                intersect: false,
+                mode: 'index'
+            },
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top',
+                    labels: {
+                        usePointStyle: true,
+                        padding: 15,
+                        font: {
+                            size: 12,
+                            weight: '600'
+                        }
+                    }
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    padding: 12,
+                    cornerRadius: 8,
+                    titleFont: {
+                        size: 13,
+                        weight: '600'
+                    },
+                    bodyFont: {
+                        size: 14,
+                        weight: '700'
+                    },
+                    callbacks: {
+                        label: function (context) {
+                            return ` ${context.parsed.y.toFixed(0)} (analog)`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: 'rgba(148, 163, 184, 0.1)',
+                        drawBorder: false
+                    },
+                    ticks: {
+                        callback: function (value) {
+                            return value.toFixed(0);
+                        },
+                        font: {
+                            size: 11
+                        }
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false,
+                        drawBorder: false
+                    },
+                    ticks: {
+                        maxRotation: 0,
+                        autoSkipPadding: 20,
+                        font: {
+                            size: 10
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
 // ============================================
 // Update Charts (Optimized for Real-time)
 // ============================================
@@ -242,6 +354,8 @@ function updateCharts() {
     // Time range'i al
     const tempRange = parseInt(document.getElementById('tempTimeRange').value);
     const humidityRange = parseInt(document.getElementById('humidityTimeRange').value);
+    const gasRangeElement = document.getElementById('gasTimeRange');
+    const gasRange = gasRangeElement ? parseInt(gasRangeElement.value) : 100;
 
     // Sıcaklık chart'ı için veri hazırla
     const tempFeeds = feeds.slice(0, tempRange).reverse();
@@ -267,6 +381,18 @@ function updateCharts() {
     });
     const humidityData = humidityFeeds.map(feed => parseFloat(feed.field2));
 
+    // Gaz chart'ı için veri hazırla
+    const gasFeeds = feeds.slice(0, gasRange).reverse();
+    const gasLabels = gasFeeds.map(feed => {
+        const date = new Date(feed.created_at);
+        return date.toLocaleTimeString('tr-TR', {
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit' // Saniye de göster (anlık takip için)
+        });
+    });
+    const gasData = gasFeeds.map(feed => parseFloat(feed.field3));
+
     // Chart'lar zaten varsa sadece güncelle (performans için)
     if (temperatureChart && humidityChart) {
         // Sadece veriyi güncelle, chart'ı yeniden oluşturma
@@ -277,10 +403,23 @@ function updateCharts() {
         humidityChart.data.labels = humidityLabels;
         humidityChart.data.datasets[0].data = humidityData;
         humidityChart.update('none'); // Animasyon yok (hızlı güncelleme)
+        
+        // Gaz chart'ı varsa güncelle
+        if (gasChart && document.getElementById('gasChart')) {
+            gasChart.data.labels = gasLabels;
+            gasChart.data.datasets[0].data = gasData;
+            gasChart.update('none');
+        } else if (document.getElementById('gasChart')) {
+            // İlk kez oluştur
+            createGasChart(gasLabels, gasData);
+        }
     } else {
         // İlk kez oluştur
         createTemperatureChart(tempLabels, tempData);
         createHumidityChart(humidityLabels, humidityData);
+        if (document.getElementById('gasChart')) {
+            createGasChart(gasLabels, gasData);
+        }
     }
 }
 
@@ -298,6 +437,7 @@ const observer = new MutationObserver((mutations) => {
             // Chart'ları yeniden render et
             if (temperatureChart) temperatureChart.update();
             if (humidityChart) humidityChart.update();
+            if (gasChart) gasChart.update();
         }
     });
 });

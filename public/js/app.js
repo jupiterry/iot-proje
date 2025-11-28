@@ -169,6 +169,12 @@ function updateStats(feeds) {
     if (!feeds || feeds.length === 0) {
         document.getElementById('currentTemp').textContent = '--°C';
         document.getElementById('currentHumidity').textContent = '--%';
+        const gasCard = document.getElementById('gasCard');
+        if (gasCard) {
+            document.getElementById('currentGas').textContent = '--';
+            document.getElementById('gasStatus').textContent = 'Durum: Veri yok';
+            gasCard.classList.remove('gas-warning');
+        }
         document.getElementById('totalData').textContent = '0';
         document.getElementById('lastUpdate').textContent = 'Veri yok';
         return;
@@ -189,9 +195,37 @@ function updateStats(feeds) {
         document.getElementById('currentHumidity').textContent = humidity.toFixed(1) + '%';
     }
 
+    // Gaz Seviyesi (field3)
+    const gasCard = document.getElementById('gasCard');
+    if (gasCard) {
+        const gas = parseFloat(latest.field3);
+        if (!isNaN(gas)) {
+            document.getElementById('currentGas').textContent = gas.toFixed(0);
+            
+            // Gaz uyarısı kontrolü (400'den büyükse uyarı)
+            const GAS_THRESHOLD = 400;
+            if (gas > GAS_THRESHOLD) {
+                document.getElementById('gasStatus').textContent = '🚨 ALARM: Gaz Algılandı!';
+                document.getElementById('gasStatus').style.color = '#ef4444';
+                document.getElementById('gasStatus').style.fontWeight = 'bold';
+                gasCard.classList.add('gas-warning');
+            } else {
+                document.getElementById('gasStatus').textContent = 'Durum: Normal';
+                document.getElementById('gasStatus').style.color = '';
+                document.getElementById('gasStatus').style.fontWeight = '';
+                gasCard.classList.remove('gas-warning');
+            }
+        } else {
+            document.getElementById('currentGas').textContent = '--';
+            document.getElementById('gasStatus').textContent = 'Durum: Veri yok';
+            gasCard.classList.remove('gas-warning');
+        }
+    }
+
     // İstatistikler
     const temps = feeds.map(f => parseFloat(f.field1)).filter(v => !isNaN(v));
     const humidities = feeds.map(f => parseFloat(f.field2)).filter(v => !isNaN(v));
+    const gases = feeds.map(f => parseFloat(f.field3)).filter(v => !isNaN(v));
 
     if (temps.length > 0) {
         const minTemp = Math.min(...temps);
@@ -301,7 +335,9 @@ async function createChannel(event) {
         name: form.name.value,
         description: form.description.value || '',
         field1_name: form.field1_name.value || 'Field 1',
-        field2_name: form.field2_name.value || 'Field 2'
+        field2_name: form.field2_name.value || 'Field 2',
+        field3_name: form.field3_name.value || 'Field 3',
+        field4_name: form.field4_name.value || 'Field 4'
     };
 
     try {

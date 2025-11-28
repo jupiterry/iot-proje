@@ -401,8 +401,27 @@ section {
     background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
 }
 
+.stat-icon.gas {
+    background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+}
+
 .stat-icon.data {
     background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+}
+
+/* Gaz uyarısı için özel stil */
+.stat-card.gas-warning {
+    border: 2px solid #ef4444;
+    animation: pulse-warning 1s infinite;
+}
+
+@keyframes pulse-warning {
+    0%, 100% {
+        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+    }
+    50% {
+        box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
+    }
 }
 
 .stat-icon svg {
