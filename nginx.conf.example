@@ -1,9 +1,7 @@
-# Nginx Yapılandırma Örneği - SSL OLMADAN
+# Nginx Yapılandırma Örneği
 # Bu dosyayı /etc/nginx/sites-available/iot-analytics olarak kaydedin
 # Domain: devrekbenimmarketim.com için hazırlanmıştır
-# SSL sertifikası KALDIRILMIŞ - Sadece HTTP (Port 80)
 
-# HTTP Server - ESP8266 için (Port 80)
 server {
     listen 80;
     server_name iot.devrekbenimmarketim.com;  # IoT subdomain
@@ -14,9 +12,6 @@ server {
 
     # Maksimum upload boyutu
     client_max_body_size 1M;
-
-    # ÖNEMLİ: HTTP'den HTTPS'e yönlendirme YOK
-    # return 301 https://... satırları OLMAMALI
 
     location / {
         proxy_pass http://localhost:3001;  # IoT projesinin portu
@@ -50,5 +45,14 @@ server {
     }
 }
 
-# SSL/HTTPS BLOĞU YOK - ESP8266 için gerekli değil
+# SSL yapılandırması (Let's Encrypt sonrası otomatik eklenir)
+# server {
+#     listen 443 ssl http2;
+#     server_name iot.devrekbenimmarketim.com;
+#     
+#     ssl_certificate /etc/letsencrypt/live/iot.devrekbenimmarketim.com/fullchain.pem;
+#     ssl_certificate_key /etc/letsencrypt/live/iot.devrekbenimmarketim.com/privkey.pem;
+#     
+#     # ... yukarıdaki location bloğu buraya da eklenir
+# }
 

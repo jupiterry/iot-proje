@@ -131,31 +131,19 @@ sudo nginx -t
 sudo systemctl reload nginx
 ```
 
-## 🔧 Adım 5: SSL Sertifikası (Let's Encrypt) - OPSİYONEL
-
-**ÖNEMLİ:** ESP8266 HTTP kullanıyorsa, HTTP'den HTTPS'e otomatik yönlendirme YAPILMAMALI!
+## 🔧 Adım 5: SSL Sertifikası (Let's Encrypt)
 
 ```bash
 # Certbot yükle (eğer yoksa)
 sudo apt-get update
 sudo apt-get install certbot python3-certbot-nginx
 
-# SSL sertifikası al (HTTP yönlendirmesini REDDET)
+# SSL sertifikası al
 sudo certbot --nginx -d iot.devrekbenimmarketim.com
 
-# Certbot size "HTTP'den HTTPS'e yönlendirme yapılsın mı?" diye soracak
-# ESP8266 kullanıyorsanız "2" (Redirect yapma) seçin!
+# Otomatik yenileme test et
+sudo certbot renew --dry-run
 ```
-
-**Alternatif:** SSL kurulumundan sonra HTTP yönlendirmesini kaldırın:
-```bash
-sudo nano /etc/nginx/sites-available/iot-analytics
-# "return 301 https://..." satırını silin veya yorum satırı yapın
-sudo nginx -t
-sudo systemctl reload nginx
-```
-
-**Detaylı bilgi için:** `NGINX_HTTP_FIX.md` dosyasına bakın.
 
 ## 🔧 Adım 6: Firewall Ayarları
 
