@@ -47,6 +47,9 @@ function createTemperatureChart(labels, data) {
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            animation: {
+                duration: 0 // Animasyon yok (hızlı güncelleme için)
+            },
             interaction: {
                 intersect: false,
                 mode: 'index'
@@ -152,6 +155,9 @@ function createHumidityChart(labels, data) {
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            animation: {
+                duration: 0 // Animasyon yok (hızlı güncelleme için)
+            },
             interaction: {
                 intersect: false,
                 mode: 'index'
@@ -224,7 +230,7 @@ function createHumidityChart(labels, data) {
 }
 
 // ============================================
-// Update Charts
+// Update Charts (Optimized for Real-time)
 // ============================================
 function updateCharts() {
     if (!currentChannel || !currentChannel.feeds || currentChannel.feeds.length === 0) {
@@ -243,7 +249,8 @@ function updateCharts() {
         const date = new Date(feed.created_at);
         return date.toLocaleTimeString('tr-TR', {
             hour: '2-digit',
-            minute: '2-digit'
+            minute: '2-digit',
+            second: '2-digit' // Saniye de göster (anlık takip için)
         });
     });
     const tempData = tempFeeds.map(feed => parseFloat(feed.field1));
@@ -254,14 +261,27 @@ function updateCharts() {
         const date = new Date(feed.created_at);
         return date.toLocaleTimeString('tr-TR', {
             hour: '2-digit',
-            minute: '2-digit'
+            minute: '2-digit',
+            second: '2-digit' // Saniye de göster (anlık takip için)
         });
     });
     const humidityData = humidityFeeds.map(feed => parseFloat(feed.field2));
 
-    // Chart'ları oluştur
-    createTemperatureChart(tempLabels, tempData);
-    createHumidityChart(humidityLabels, humidityData);
+    // Chart'lar zaten varsa sadece güncelle (performans için)
+    if (temperatureChart && humidityChart) {
+        // Sadece veriyi güncelle, chart'ı yeniden oluşturma
+        temperatureChart.data.labels = tempLabels;
+        temperatureChart.data.datasets[0].data = tempData;
+        temperatureChart.update('none'); // Animasyon yok (hızlı güncelleme)
+        
+        humidityChart.data.labels = humidityLabels;
+        humidityChart.data.datasets[0].data = humidityData;
+        humidityChart.update('none'); // Animasyon yok (hızlı güncelleme)
+    } else {
+        // İlk kez oluştur
+        createTemperatureChart(tempLabels, tempData);
+        createHumidityChart(humidityLabels, humidityData);
+    }
 }
 
 // ============================================

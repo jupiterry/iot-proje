@@ -39,9 +39,30 @@ async function fetchChannelData(channelId, results = 100) {
     try {
         // Cache bypass için timestamp ekle (her zaman en son veriyi al)
         const timestamp = new Date().getTime();
-        const response = await fetch(`/channels/${channelId}/feeds.json?results=${results}&_t=${timestamp}`);
-        const data = await response.json();
-        return data;
+        
+        // Son veriyi hızlı almak için last.json endpoint'ini kullan
+        const [lastResponse, allResponse] = await Promise.all([
+            fetch(`/channels/${channelId}/feeds/last.json?_t=${timestamp}`),
+            fetch(`/channels/${channelId}/feeds.json?results=${results}&_t=${timestamp}`)
+        ]);
+        
+        const lastData = await lastResponse.json();
+        const allData = await allResponse.json();
+        
+        // Son veriyi feeds array'inin başına ekle (eğer yeni ise)
+        if (lastData.feed && Object.keys(lastData.feed).length > 0) {
+            const existingIndex = allData.feeds.findIndex(f => f.id === lastData.feed.id);
+            if (existingIndex === -1) {
+                // Yeni veri varsa başa ekle
+                allData.feeds = [lastData.feed, ...allData.feeds];
+            } else if (existingIndex > 0) {
+                // Eğer listede varsa ama başta değilse, başa taşı
+                allData.feeds.splice(existingIndex, 1);
+                allData.feeds.unshift(lastData.feed);
+            }
+        }
+        
+        return allData;
     } catch (error) {
         console.error('Channel verileri alınamadı:', error);
         return null;
@@ -238,11 +259,11 @@ function hideLoadingState() {
 function startAutoRefresh() {
     stopAutoRefresh();
 
-    // 2 saniyede bir güncelle (gerçek zamanlı görünüm)
+    // 0.5 saniyede bir güncelle (gerçek zamanlı anlık görünüm)
     refreshInterval = setInterval(async () => {
         const channelId = document.getElementById('channelSelect').value;
         if (channelId) {
-            console.log('🔄 Otomatik güncelleme...');
+            // Sessiz güncelleme (console.log kaldırıldı - performans için)
             const data = await fetchChannelData(channelId, 100);
             if (data) {
                 currentChannel = data;
@@ -250,7 +271,7 @@ function startAutoRefresh() {
                 updateCharts();
             }
         }
-    }, 1500); // 1.5 saniye (gerçek zamanlı görünüm - maksimum hız)
+    }, 500); // 0.5 saniye (gerçek zamanlı anlık görünüm)
 }
 
 function stopAutoRefresh() {

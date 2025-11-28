@@ -35,9 +35,13 @@ router.post('/update', async (req, res) => {
         const feed = await Feed.create(channel.id, feedData);
 
         // ThingSpeak uyumlu response (entry_id döndür)
+        // Hızlı yanıt için hemen gönder (async işlemler beklemeden)
         res.status(200).send(feed.id.toString());
 
-        console.log(`✓ Veri alındı - Channel: ${channel.name}, ID: ${feed.id}`);
+        // Log'u arka planda yap (performans için)
+        setImmediate(() => {
+            console.log(`✓ Veri alındı - Channel: ${channel.name}, ID: ${feed.id}`);
+        });
     } catch (error) {
         console.error('Update hatası:', error);
         res.status(500).json({ error: 'Sunucu hatası' });

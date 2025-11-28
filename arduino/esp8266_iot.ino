@@ -38,7 +38,7 @@ DHT dht(DHTPIN, DHTTYPE);
 WiFiClient client;
 
 unsigned long lastUpdate = 0;
-const unsigned long updateInterval = 2000; // 2 saniye (gerçek zamanlı veri takibi)
+const unsigned long updateInterval = 500; // 0.5 saniye (gerçek zamanlı anlık veri takibi)
 
 // ============================================
 // SETUP
@@ -104,7 +104,7 @@ void loop() {
         return;
     }
     
-    // 2 saniyede bir veri gönder (gerçek zamanlı veri takibi)
+    // 0.5 saniyede bir veri gönder (gerçek zamanlı anlık veri takibi)
     unsigned long currentMillis = millis();
     if (currentMillis - lastUpdate >= updateInterval) {
         lastUpdate = currentMillis;
